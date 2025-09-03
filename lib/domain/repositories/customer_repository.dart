@@ -6,6 +6,8 @@ import '../entities/customer_entry.dart';
 abstract class CustomerRepository {
   Future<Either<Failure, void>> saveEntries(List<CustomerEntry> entries);
 
+  Future<Either<Failure, Map<DateTime, int>>> getSavedDates();
+
   Future<Either<Failure, List<CustomerEntry>>> getEntriesForDate(DateTime date);
 
   Future<Either<Failure, List<CustomerEntry>>> getAllCustomers();

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../bloc/customer_bloc.dart';
+import '../bloc/customer/customer_bloc.dart';
 
 class CustomerChip extends StatelessWidget {
   final String name;

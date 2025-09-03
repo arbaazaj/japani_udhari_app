@@ -13,6 +13,26 @@ class CustomerRepositoryImpl implements CustomerRepository {
   CustomerRepositoryImpl(this.localDataSource);
 
   @override
+  Future<Either<Failure, Map<DateTime, int>>> getSavedDates() async {
+    try {
+      final result = await localDataSource.getSavedDates();
+      final Map<DateTime, int> savedDates = {};
+      for (var map in result) {
+        final date = DateTime.parse(map['date']);
+        final entries = await localDataSource.getEntriesForDate(date);
+        final totalQuantity = entries.fold(
+          0,
+          (sum, entry) => sum + entry.quantity,
+        );
+        savedDates[date] = totalQuantity;
+      }
+      return Right(savedDates);
+    } on DatabaseException {
+      return Left(DatabaseFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, List<CustomerEntry>>> getEntriesForDate(
     DateTime date,
   ) async {

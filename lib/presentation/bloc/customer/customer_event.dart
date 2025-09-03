@@ -47,4 +47,11 @@ class UpdateQuantity extends CustomerEvent {
   List<Object> get props => [customerName, quantity];
 }
 
-class SaveCustomersEvent extends CustomerEvent {}
+class SaveCustomersEvent extends CustomerEvent {
+  final DateTime date;
+
+  const SaveCustomersEvent({required this.date});
+
+  @override
+  List<Object> get props => [date];
+}

@@ -7,8 +7,10 @@ import 'domain/usecases/add_customer.dart';
 import 'domain/usecases/delete_customer.dart';
 import 'domain/usecases/edit_customer.dart';
 import 'domain/usecases/get_customers.dart';
+import 'domain/usecases/get_saved_dates.dart';
 import 'domain/usecases/save_customers.dart';
-import 'presentation/bloc/customer_bloc.dart';
+import 'presentation/bloc/customer/customer_bloc.dart';
+import 'presentation/bloc/summary/summary_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -25,10 +27,13 @@ Future<void> init() async {
     ),
   );
 
+  sl.registerFactory(() => SummaryBloc(getSavedDates: sl()));
+
   // Use Cases
   sl.registerLazySingleton(() => AddCustomer(sl()));
   sl.registerLazySingleton(() => EditCustomer(sl()));
   sl.registerLazySingleton(() => DeleteCustomer(sl()));
+  sl.registerLazySingleton(() => GetSavedDates(sl()));
   sl.registerLazySingleton(() => GetCustomers(sl()));
   sl.registerLazySingleton(() => SaveCustomers(sl()));
 

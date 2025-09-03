@@ -1,36 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
-import '../bloc/customer_bloc.dart';
+import '../bloc/customer/customer_bloc.dart';
 import '../widgets/customer_chip.dart';
 import 'manage_customers_screen.dart';
 
 class CustomerScreen extends StatelessWidget {
-  const CustomerScreen({super.key});
+  final DateTime date;
+
+  const CustomerScreen({super.key, required this.date});
 
   @override
   Widget build(BuildContext context) {
+    final formattedDate = DateFormat('EEE, dd MMM').format(date);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Udhari App'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ManageCustomersScreen(),
-                ),
-              );
-            },
+        title: Text(
+          formattedDate,
+          style: TextStyle(
+            color: Colors.blue,
+            fontSize: 22.0,
+            fontWeight: FontWeight.bold,
           ),
+        ),
+        actions: [
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: () {
-              context.read<CustomerBloc>().add(SaveCustomersEvent());
+              context.read<CustomerBloc>().add(SaveCustomersEvent(date: date));
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_add),
+            onPressed: () {
+              Get.to(() => ManageCustomersScreen());
             },
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.read<CustomerBloc>().add(
+            SaveCustomersEvent(date: DateTime.now()),
+          );
+        },
+        child: const Icon(Icons.save),
       ),
       body: BlocConsumer<CustomerBloc, CustomerState>(
         listener: (context, state) {
@@ -50,18 +67,18 @@ class CustomerScreen extends StatelessWidget {
           } else if (state is CustomerLoaded) {
             return Column(
               children: [
-                SizedBox(
-                  height: 60,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: state.allCustomers.length,
-                    itemBuilder: (context, index) {
-                      final customer = state.allCustomers[index];
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    spacing: 16.0, // horizontal space between chips
+                    runSpacing: 8.0, // vertical space between lines of chips
+                    children: state.allCustomers.map((customer) {
                       return CustomerChip(
                         name: customer.name,
                         quantity: customer.quantity,
                       );
-                    },
+                    }).toList(),
                   ),
                 ),
                 const Divider(),

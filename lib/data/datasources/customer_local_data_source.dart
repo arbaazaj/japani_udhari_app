@@ -7,6 +7,8 @@ import '../models/customer_model.dart';
 abstract class CustomerLocalDataSource {
   Future<void> saveEntries(List<CustomerModel> entries);
 
+  Future<List<Map<String, dynamic>>> getSavedDates();
+
   Future<List<CustomerModel>> getEntriesForDate(DateTime date);
 
   Future<List<CustomerModel>> getAllCustomers(); // New method
@@ -50,6 +52,19 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getSavedDates() async {
+    final db = await database;
+    try {
+      final List<Map<String, dynamic>> maps = await db.rawQuery(
+        'SELECT DISTINCT date FROM customer_entries ORDER BY date DESC',
+      );
+      return maps;
+    } on DatabaseException {
+      throw DatabaseException();
+    }
+  }
+
+  @override
   Future<void> saveEntries(List<CustomerModel> entries) async {
     final db = await database;
     try {
@@ -79,10 +94,12 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
       final List<Map<String, dynamic>> maps = await db.query(
         'customer_entries',
         where: 'date = ?',
-        whereArgs: [date.toIso8601String()],
+        whereArgs: [
+          date.toIso8601String().substring(0, 10),
+        ], // Fetch entries for a specific day
       );
       return maps.map((map) => CustomerModel.fromMap(map)).toList();
-    } catch (e) {
+    } on DatabaseException {
       throw DatabaseException();
     }
   }

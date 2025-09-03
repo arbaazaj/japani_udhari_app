@@ -1,12 +1,12 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/entities/customer_entry.dart';
-import '../../domain/usecases/add_customer.dart';
-import '../../domain/usecases/delete_customer.dart';
-import '../../domain/usecases/edit_customer.dart';
-import '../../domain/usecases/get_customers.dart';
-import '../../domain/usecases/save_customers.dart';
+import '../../../domain/entities/customer_entry.dart';
+import '../../../domain/usecases/add_customer.dart';
+import '../../../domain/usecases/delete_customer.dart';
+import '../../../domain/usecases/edit_customer.dart';
+import '../../../domain/usecases/get_customers.dart';
+import '../../../domain/usecases/save_customers.dart';
 
 part 'customer_event.dart';
 part 'customer_state.dart';
@@ -91,16 +91,29 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
   ) async {
     if (state is CustomerLoaded) {
       final loadedState = state as CustomerLoaded;
-      final customersToSave = loadedState.activeCustomers;
+      // Convert the active customers to the new format
+      final customersToSave = loadedState.activeCustomers.map((customer) {
+        // Ensure each customer entry has the correct date
+        return CustomerEntry(
+          id: customer.id,
+          name: customer.name,
+          quantity: customer.quantity,
+          date: event.date,
+        );
+      }).toList();
+
+      // Use the new save customers use case
       final result = await saveCustomers(customersToSave);
       result.fold(
         (failure) => emit(const CustomerError('Failed to save entries')),
-        (_) => emit(
-          CustomerSaved(
-            allCustomers: loadedState.allCustomers,
-            activeCustomers: loadedState.activeCustomers,
-          ),
-        ),
+        (_) {
+          emit(
+            CustomerSaved(
+              allCustomers: loadedState.allCustomers,
+              activeCustomers: loadedState.activeCustomers,
+            ),
+          );
+        },
       );
     }
   }
