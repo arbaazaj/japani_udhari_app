@@ -16,6 +16,11 @@ class CustomerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final formattedDate = DateFormat('EEE, dd MMM').format(date);
 
+    // Load customers for the specific date when screen is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CustomerBloc>().add(LoadCustomers(date: date));
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -44,7 +49,7 @@ class CustomerScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           context.read<CustomerBloc>().add(
-            SaveCustomersEvent(date: DateTime.now()),
+            SaveCustomersEvent(date: date),
           );
         },
         child: const Icon(Icons.save),

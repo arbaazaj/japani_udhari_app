@@ -22,7 +22,7 @@ class CustomerModel extends CustomerEntry {
       id: map['id'],
       name: map['name'],
       quantity: map['quantity'],
-      date: DateTime.parse(map['date']),
+      date: DateTime.parse('${map['date']}T00:00:00.000'), // Parse date string and set time to midnight
     );
   }
 
@@ -31,7 +31,7 @@ class CustomerModel extends CustomerEntry {
       'id': id,
       'name': name,
       'quantity': quantity,
-      'date': date.toIso8601String(),
+      'date': date.toIso8601String().substring(0, 10), // Store only date part (YYYY-MM-DD)
     };
   }
 }

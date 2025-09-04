@@ -35,7 +35,14 @@ class DeleteCustomerEvent extends CustomerEvent {
   List<Object> get props => [id];
 }
 
-class LoadCustomers extends CustomerEvent {}
+class LoadCustomers extends CustomerEvent {
+  final DateTime? date;
+
+  const LoadCustomers({this.date});
+
+  @override
+  List<Object?> get props => [date];
+}
 
 class UpdateQuantity extends CustomerEvent {
   final String customerName;

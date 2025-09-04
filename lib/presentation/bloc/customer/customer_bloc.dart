@@ -40,22 +40,39 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
   ) async {
     emit(CustomerLoading());
 
-    // Use the new get all customers use case
-    final result = await getCustomers(date: null);
+    // Check if we need to load for a specific date or all customers
+    final result = event.date != null 
+        ? await getCustomers(date: event.date)
+        : await getCustomers(date: null);
 
     result.fold(
       (failure) => emit(const CustomerError('Failed to load customers.')),
-      (allCustomers) {
-        _allCustomers = allCustomers;
-        final activeCustomers = allCustomers
-            .where((c) => c.quantity > 0)
-            .toList();
-        emit(
-          CustomerLoaded(
-            allCustomers: _allCustomers,
-            activeCustomers: activeCustomers,
-          ),
-        );
+      (customers) {
+        if (event.date != null) {
+          // Loading for a specific date - these are saved entries
+          _allCustomers = customers;
+          final activeCustomers = customers
+              .where((c) => c.quantity > 0)
+              .toList();
+          emit(
+            CustomerLoaded(
+              allCustomers: customers,
+              activeCustomers: activeCustomers,
+            ),
+          );
+        } else {
+          // Loading all customers (master list) - reset quantities to 0
+          _allCustomers = customers;
+          final activeCustomers = customers
+              .where((c) => c.quantity > 0)
+              .toList();
+          emit(
+            CustomerLoaded(
+              allCustomers: _allCustomers,
+              activeCustomers: activeCustomers,
+            ),
+          );
+        }
       },
     );
   }
@@ -128,7 +145,7 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
     result.fold(
       (failure) => emit(const CustomerError('Failed to add customer.')),
       (_) {
-        add(LoadCustomers());
+        add(const LoadCustomers());
       },
     );
   }
@@ -146,7 +163,7 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
         date: customerToEdit.date,
       ),
     );
-    add(LoadCustomers()); // Reload the list after editing
+    add(const LoadCustomers()); // Reload the list after editing
   }
 
   Future<void> onDeleteCustomer(
@@ -154,6 +171,6 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
     Emitter<CustomerState> emit,
   ) async {
     await deleteCustomer(event.id);
-    add(LoadCustomers()); // Reload the list after deleting
+    add(const LoadCustomers()); // Reload the list after deleting
   }
 }

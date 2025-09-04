@@ -69,15 +69,26 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
     final db = await database;
     try {
       await db.transaction((txn) async {
+        // Normalize date to YYYY-MM-DD format for consistent storage
+        final dateString = entries.first.date.toIso8601String().substring(0, 10);
+        
+        // Delete existing entries for this date
         await txn.delete(
           'customer_entries',
           where: 'date = ?',
-          whereArgs: [entries.first.date.toIso8601String()],
+          whereArgs: [dateString],
         );
+        
+        // Insert new entries with normalized date
         for (var entry in entries) {
           await txn.insert(
             'customer_entries',
-            entry.toMap(),
+            {
+              'id': entry.id,
+              'name': entry.name,
+              'quantity': entry.quantity,
+              'date': dateString, // Store only date part (YYYY-MM-DD)
+            },
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
         }
@@ -91,14 +102,24 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
   Future<List<CustomerModel>> getEntriesForDate(DateTime date) async {
     final db = await database;
     try {
+      // Normalize date to YYYY-MM-DD format for consistent querying
+      final dateString = date.toIso8601String().substring(0, 10);
+      
       final List<Map<String, dynamic>> maps = await db.query(
         'customer_entries',
         where: 'date = ?',
-        whereArgs: [
-          date.toIso8601String().substring(0, 10),
-        ], // Fetch entries for a specific day
+        whereArgs: [dateString],
       );
-      return maps.map((map) => CustomerModel.fromMap(map)).toList();
+      
+      // Convert maps to CustomerModel with proper date reconstruction
+      return maps.map((map) {
+        return CustomerModel(
+          id: map['id'],
+          name: map['name'],
+          quantity: map['quantity'],
+          date: DateTime.parse('${map['date']}T00:00:00.000'), // Reconstruct date with time as midnight
+        );
+      }).toList();
     } on DatabaseException {
       throw DatabaseException();
     }

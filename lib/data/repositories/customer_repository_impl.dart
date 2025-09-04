@@ -18,7 +18,10 @@ class CustomerRepositoryImpl implements CustomerRepository {
       final result = await localDataSource.getSavedDates();
       final Map<DateTime, int> savedDates = {};
       for (var map in result) {
-        final date = DateTime.parse(map['date']);
+        // Parse date string (YYYY-MM-DD) and create DateTime with midnight time
+        final dateString = map['date'] as String;
+        final date = DateTime.parse('${dateString}T00:00:00.000');
+        
         final entries = await localDataSource.getEntriesForDate(date);
         final totalQuantity = entries.fold(
           0,
